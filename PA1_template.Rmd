@@ -18,7 +18,7 @@ if (!require("dplyr",character.only = TRUE))
 
 ## Loading and preprocessing the data
 ```{r}
-# Unzip activty.zip which is part of Git repository
+# Unzip activity.zip which is part of Git repository
 unzip("activity.zip")
 
 activityDataFrame <- read.csv("activity.csv")
@@ -116,3 +116,26 @@ median(revisedSummarySteps$medianSteps)
 The mean total number of steps taken per day is the **same** as the value before imputing missing data because missing values where replaced with the mean value for that particular 5-min interval which maintained the status quo. The median total number of steps taken per day is **minimally different** as we changed the frequency distribution due to the replacement of the NA's.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+* Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
+```{r}
+revisedActivityDataFrame$dayType = as.factor(ifelse(weekdays(as.POSIXlt(as.Date(revisedActivityDataFrame$date))) %in% c("Saturday","Sunday"), "Weekend", "Weekday")) 
+
+```
+
+* Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+```{r}
+# Use dplyr pipeline to calculate average steps per dayType and Interval
+stepsByDate <- revisedActivityDataFrame  %>% group_by(dayType, interval) %>% summarise(avgSteps = mean(steps))
+
+library(lattice)
+xyplot(avgSteps~interval|factor(dayType), data=stepsByDate, 
+       aspect=1/2, 
+       type="l", 
+       main="Comparison of Average Interval Steps for Weekends and Weekdays",
+       xlab="Interval",
+       ylab="Average Steps")
+
+```
